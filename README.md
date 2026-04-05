@@ -22,11 +22,24 @@ Other tools existed for writing shortcuts as code. JellyCuts was the main one. B
 - Compiles to signed `.shortcut` files that work on macOS, iOS, and iPadOS
 - `discover` command to find actions from any installed app
 
+## Install
+
+```bash
+brew tap taylorarndt/tap
+brew install perspective-cuts
+```
+
+Or build from source:
+
+```bash
+git clone https://github.com/taylorarndt/perspective-cuts.git
+cd perspective-cuts
+swift build
+```
+
 ## Quick Start
 
 ```bash
-# Build
-swift build
 
 # Write a shortcut
 cat > hello.perspective << 'EOF'
