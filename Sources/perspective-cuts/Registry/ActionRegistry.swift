@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(Darwin)
+import Darwin
+#endif
 
 struct ActionParameter: Sendable {
     let type: String
@@ -34,9 +37,22 @@ struct ActionRegistry: Sendable {
         let candidates: [URL] = {
             var urls: [URL] = []
 
-            // Resolve symlinks to get the real executable location (Homebrew uses relative symlinks)
-            let execURL = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
-            let execDir = execURL.deletingLastPathComponent()
+            // Use _NSGetExecutablePath + realpath to find the true binary location.
+            // CommandLine.arguments[0] is often a bare name like "perspective-cuts" when
+            // run from PATH, which resolves against CWD instead of the actual binary.
+            let execDir: URL = {
+                #if canImport(Darwin)
+                var bufsize: UInt32 = 0
+                _NSGetExecutablePath(nil, &bufsize)
+                var buf = [CChar](repeating: 0, count: Int(bufsize))
+                _NSGetExecutablePath(&buf, &bufsize)
+                var resolved = [CChar](repeating: 0, count: Int(PATH_MAX))
+                if realpath(&buf, &resolved) != nil {
+                    return URL(fileURLWithPath: String(cString: resolved)).deletingLastPathComponent()
+                }
+                #endif
+                return URL(fileURLWithPath: CommandLine.arguments[0]).deletingLastPathComponent()
+            }()
 
             // 1. Next to executable
             urls.append(execDir.appendingPathComponent("actions.json"))
