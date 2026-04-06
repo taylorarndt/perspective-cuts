@@ -93,7 +93,7 @@ showResult(text: answer)
 
 ## CLI
 
-<img src="demos/discover.gif" alt="Terminal demo showing the discover command finding third-party app actions" width="800">
+<img src="demos/install.gif" alt="Terminal demo showing Homebrew install, discovering third-party actions, inspecting ChatGPT action parameters with the detail command, and compiling a shortcut" width="800">
 
 ```bash
 perspective-cuts compile --sign file.perspective    # Compile and sign
@@ -101,6 +101,7 @@ perspective-cuts compile --install file.perspective  # Install to Shortcuts DB
 perspective-cuts actions                             # List built-in actions
 perspective-cuts discover openai                     # Find third party actions
 perspective-cuts discover --third-party              # All third party apps
+perspective-cuts detail com.openai.chat.AskIntent   # Inspect action parameters
 perspective-cuts validate file.perspective           # Validate syntax
 ```
 
@@ -139,6 +140,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute. This is experiment
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/taylorarndt"><img src="https://github.com/taylorarndt.png?size=100" width="100px;" alt="Taylor Arndt"/><br /><sub><b>Taylor Arndt</b></sub></a><br />Creator</td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/mikedoise"><img src="https://github.com/mikedoise.png?size=100" width="100px;" alt="Michael Doise"/><br /><sub><b>Michael Doise</b></sub></a><br />Contributor</td>
     </tr>
   </tbody>
 </table>
