@@ -20,12 +20,18 @@ enum ASTNode: Sendable {
     case returnStatement(value: Expression?, location: SourceLocation)
 }
 
+struct DictionaryEntry: Sendable {
+    let key: Expression
+    let value: Expression
+}
+
 enum Expression: Sendable {
     case stringLiteral(String)
     case numberLiteral(Double)
     case boolLiteral(Bool)
     case variableReference(String)
     case interpolatedString(parts: [StringPart])
+    case dictionaryLiteral([DictionaryEntry])
 }
 
 enum StringPart: Sendable {

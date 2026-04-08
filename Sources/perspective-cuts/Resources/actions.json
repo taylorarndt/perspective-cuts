@@ -183,7 +183,7 @@
           "key": "WFURL"
         },
         "method": {
-          "type": "string",
+          "type": "enum",
           "required": false,
           "key": "WFHTTPMethod"
         },
@@ -193,12 +193,12 @@
           "key": "WFHTTPHeaders"
         },
         "bodyType": {
-          "type": "string",
+          "type": "enum",
           "required": false,
           "key": "WFHTTPBodyType"
         },
         "body": {
-          "type": "variable",
+          "type": "dictionary",
           "required": false,
           "key": "WFRequestVariable"
         }

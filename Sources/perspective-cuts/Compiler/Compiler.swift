@@ -58,14 +58,19 @@ struct Compiler: Sendable {
                     parameters: ["WFCommentActionText": text]
                 ))
             case .variableDeclaration(let name, let value, _, _):
-                // Emit a setVariable action
-                let textAction = try buildTextAction(from: value)
-                actions.append(textAction)
+                // Emit the appropriate action based on expression type
+                let sourceAction: [String: Any]
+                if case .dictionaryLiteral = value {
+                    sourceAction = try buildDictionaryAction(from: value, outputMap: outputMap)
+                } else {
+                    sourceAction = try buildTextAction(from: value)
+                }
+                actions.append(sourceAction)
                 actions.append(buildAction(
                     identifier: "is.workflow.actions.setvariable",
                     parameters: [
                         "WFVariableName": name,
-                        "WFInput": buildMagicVariable(outputOf: textAction)
+                        "WFInput": buildMagicVariable(outputOf: sourceAction)
                     ]
                 ))
             case .actionCall(let name, let arguments, let output, let location):
@@ -311,6 +316,15 @@ struct Compiler: Sendable {
         ]
     }
 
+    private func buildDictionaryAction(from expression: Expression, outputMap: [String: OutputRef]) throws -> [String: Any] {
+        let value = try expressionToValueWithOutputMap(expression, outputMap: outputMap)
+        let uuid = UUID().uuidString
+        return buildAction(
+            identifier: "is.workflow.actions.dictionary",
+            parameters: ["WFItems": value, "UUID": uuid, "CustomOutputName": "Dictionary"]
+        )
+    }
+
     private func buildTextAction(from expression: Expression) throws -> [String: Any] {
         let value = try expressionToValue(expression)
         let uuid = UUID().uuidString
@@ -338,6 +352,7 @@ struct Compiler: Sendable {
         case .stringLiteral(let s): return s
         case .numberLiteral(let n): return n == n.rounded() ? Int(n) : n
         case .boolLiteral(let b): return b
+        case .dictionaryLiteral: return try expressionToValue(expr)
         default: return try expressionToValue(expr)
         }
     }
@@ -406,6 +421,39 @@ struct Compiler: Sendable {
             return [
                 "Value": ["string": text, "attachmentsByRange": attachments],
                 "WFSerializationType": "WFTextTokenString"
+            ] as [String: Any]
+        case .dictionaryLiteral(let entries):
+            var items: [[String: Any]] = []
+            for entry in entries {
+                var item: [String: Any] = [:]
+                item["WFKey"] = try expressionToValueWithOutputMap(entry.key, outputMap: outputMap)
+
+                switch entry.value {
+                case .numberLiteral(let n):
+                    item["WFItemType"] = 3
+                    let s = n == n.rounded() ? String(Int(n)) : String(n)
+                    item["WFValue"] = [
+                        "Value": ["string": s, "attachmentsByRange": [String: Any]()],
+                        "WFSerializationType": "WFTextTokenString"
+                    ] as [String: Any]
+                case .boolLiteral(let b):
+                    item["WFItemType"] = 4
+                    item["WFValue"] = [
+                        "Value": b,
+                        "WFSerializationType": "WFNumberSubstitutableState"
+                    ] as [String: Any]
+                case .dictionaryLiteral:
+                    item["WFItemType"] = 1
+                    item["WFValue"] = try expressionToValueWithOutputMap(entry.value, outputMap: outputMap)
+                default:
+                    item["WFItemType"] = 0
+                    item["WFValue"] = try expressionToValueWithOutputMap(entry.value, outputMap: outputMap)
+                }
+                items.append(item)
+            }
+            return [
+                "Value": ["WFDictionaryFieldValueItems": items],
+                "WFSerializationType": "WFDictionaryFieldValue"
             ] as [String: Any]
         }
     }

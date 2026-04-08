@@ -1,0 +1,24 @@
+#name: Dictionary API Test
+#icon: globe
+#color: blue
+
+// POST with headers and nested JSON body
+downloadURL(
+  url: "https://jsonplaceholder.typicode.com/posts",
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer my-secret-token",
+    "Accept": "application/json"
+  },
+  bodyType: "JSON",
+  body: {
+    "title": "Hello from Perspective",
+    "userId": 1,
+    "completed": false,
+    "metadata": {
+      "source": "perspective-cuts",
+      "version": 2
+    }
+  }
+) -> result
+showResult(text: result)
