@@ -9,7 +9,6 @@ This project is in active development. Things change fast. If you want to contri
 ## What I Need Help With
 
 - **Action verification.** There are 180+ actions in the registry. Only 35 have been tested end-to-end. If you can test actions and report results, that is valuable.
-- **Fixing the if/else bug.** The condition compiler uses Variable type instead of ActionOutput with UUID for action outputs. This is the biggest known bug.
 - **The changeCase keyword conflict.** The word `case` is a parser keyword. The `changeCase` action cannot be used. This needs a parser fix.
 - **Enum parameter discovery.** Some actions use enum dropdowns that need special serialization (integers instead of strings, like `useModel`). Finding and documenting these is useful.
 - **New actions.** If Apple ships new actions or you find third party actions that need registry entries, submit them.

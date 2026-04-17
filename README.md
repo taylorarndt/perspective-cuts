@@ -119,7 +119,6 @@ See [PERSPECTIVE-LANGUAGE.md](PERSPECTIVE-LANGUAGE.md) for the complete language
 
 This is experimental. 35 actions have been tested end-to-end. 167 have verified identifiers. The compiler works. The language works. But there are known limitations:
 
-- `if/else` does not correctly reference action output variables
 - `changeCase` cannot be used because `case` is a parser keyword
 - `getCurrentWeather` is iOS only
 - Some enum parameters need special handling (like `useModel` needing integer values)

@@ -94,8 +94,6 @@ menu "Pick one" {
 }
 ```
 
-Note: if/else has a known issue where action output variables don't reference correctly. Use `useModel` to make decisions for now.
-
 ## Apple Intelligence
 
 This is where it gets interesting. The `useModel` action sends a prompt to Apple Intelligence. You can use the on-device model or Private Cloud Compute.
@@ -620,7 +618,6 @@ Plus third party app actions via raw identifiers (Perspective Intelligence, Chat
 
 ## Known Limitations
 
-- `if/else` does not correctly reference action output variables. Use `useModel` for decisions.
 - `changeCase` cannot be used because `case` is a parser keyword. Will be fixed.
 - `getCurrentWeather` is iOS only. Does not work on macOS.
 - Unlabeled arguments are silently dropped. Always use `label: value`.

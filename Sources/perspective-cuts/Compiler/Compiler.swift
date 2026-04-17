@@ -168,7 +168,7 @@ struct Compiler: Sendable {
                 let groupID = UUID().uuidString
                 // Emit conditional start
                 var condParams: [String: Any] = ["GroupingIdentifier": groupID, "WFControlFlowMode": 0]
-                try applyCondition(condition, to: &condParams)
+                try applyCondition(condition, to: &condParams, outputMap: outputMap)
                 actions.append(buildAction(identifier: "is.workflow.actions.conditional", parameters: condParams))
 
                 // Emit then body
@@ -458,28 +458,57 @@ struct Compiler: Sendable {
         }
     }
 
-    private func applyCondition(_ condition: Condition, to params: inout [String: Any]) throws {
+    private func applyCondition(_ condition: Condition, to params: inout [String: Any], outputMap: [String: OutputRef]) throws {
+        // Helper: resolve the left-hand side of a condition.
+        // Conditionals use a nested format for WFInput:
+        //   { Type: "Variable", Variable: { Value: { ... }, WFSerializationType: "WFTextTokenAttachment" } }
+        func resolveInput(_ expr: Expression) throws -> Any {
+            if case .variableReference(let name) = expr {
+                let inner: [String: Any]
+                if let ref = outputMap[name] {
+                    inner = [
+                        "Value": [
+                            "OutputUUID": ref.uuid,
+                            "Type": "ActionOutput",
+                            "OutputName": ref.name
+                        ],
+                        "WFSerializationType": "WFTextTokenAttachment"
+                    ] as [String: Any]
+                } else {
+                    inner = [
+                        "Value": ["VariableName": name, "Type": "Variable"],
+                        "WFSerializationType": "WFTextTokenAttachment"
+                    ] as [String: Any]
+                }
+                return [
+                    "Type": "Variable",
+                    "Variable": inner
+                ] as [String: Any]
+            }
+            return try expressionToValueWithOutputMap(expr, outputMap: outputMap)
+        }
+
         switch condition {
         case .equals(let left, let right):
-            params["WFInput"] = try expressionToValue(left)
+            params["WFInput"] = try resolveInput(left)
             params["WFCondition"] = 4 // equals
-            params["WFConditionalActionString"] = try expressionToValue(right)
+            params["WFConditionalActionString"] = try expressionToValueWithOutputMap(right, outputMap: outputMap)
         case .notEquals(let left, let right):
-            params["WFInput"] = try expressionToValue(left)
+            params["WFInput"] = try resolveInput(left)
             params["WFCondition"] = 5 // not equals
-            params["WFConditionalActionString"] = try expressionToValue(right)
+            params["WFConditionalActionString"] = try expressionToValueWithOutputMap(right, outputMap: outputMap)
         case .contains(let left, let right):
-            params["WFInput"] = try expressionToValue(left)
+            params["WFInput"] = try resolveInput(left)
             params["WFCondition"] = 99 // contains
-            params["WFConditionalActionString"] = try expressionToValue(right)
+            params["WFConditionalActionString"] = try expressionToValueWithOutputMap(right, outputMap: outputMap)
         case .greaterThan(let left, let right):
-            params["WFInput"] = try expressionToValue(left)
+            params["WFInput"] = try resolveInput(left)
             params["WFCondition"] = 2 // greater than
-            params["WFConditionalActionString"] = try expressionToValue(right)
+            params["WFConditionalActionString"] = try expressionToValueWithOutputMap(right, outputMap: outputMap)
         case .lessThan(let left, let right):
-            params["WFInput"] = try expressionToValue(left)
+            params["WFInput"] = try resolveInput(left)
             params["WFCondition"] = 3 // less than
-            params["WFConditionalActionString"] = try expressionToValue(right)
+            params["WFConditionalActionString"] = try expressionToValueWithOutputMap(right, outputMap: outputMap)
         }
     }
 
