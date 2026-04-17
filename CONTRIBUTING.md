@@ -45,6 +45,14 @@ The `Examples/full-test-suite.perspective` file tests 35 actions at once. You ca
 - Changes that break existing working actions without a fix
 - PRs without testing
 
+## AI Contributions Are Welcome
+
+AI-generated contributions are welcome here. You do not need to apologize for your tooling.
+
+We use AI on this project ourselves. The way we like to work is what we call partner coding. A human and an AI write code together, and a human reviews what comes out. If you have a basic understanding of what the code does and why, we are very happy to work with you on it. And honestly, even if you do not fully understand every line yet, we are still willing to review it with you. We believe in helping people learn how to code and in building a community around that, not gatekeeping based on how the keystrokes got typed.
+
+No PRs will be closed here for being AI-assisted. Bring them.
+
 ## Questions
 
 Open an issue. I will get back to you.
