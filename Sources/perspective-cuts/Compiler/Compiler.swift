@@ -672,6 +672,14 @@ struct Compiler: Sendable {
     }
 
     private func iconGlyphNumber(for name: String) -> Int {
+        // Allow passing a raw glyph number directly: `#icon: 59693`.
+        // The named-glyph table below is a best-effort guess and several
+        // values do not match what current iOS/macOS Shortcuts actually
+        // renders. When the named lookup is wrong, fall back to a number
+        // copied from a real shortcut in ~/Library/Shortcuts/Shortcuts.sqlite.
+        if let n = Int(name.trimmingCharacters(in: .whitespaces)) {
+            return n
+        }
         let glyphs: [String: Int] = [
             "gear": 59771, "compose": 59772, "star": 59773,
             "heart": 59774, "bolt": 59775, "globe": 59776,
