@@ -358,7 +358,8 @@ struct Compiler: Sendable {
         "Shell",
         "InputMode",
         "Script",
-        "WFTextActionText"
+        "WFTextActionText",
+        "WFNotificationActionTitle"
     ]
 
     private static let defaultInputContentClasses: [String] = [
@@ -399,18 +400,53 @@ struct Compiler: Sendable {
     }
 
     private func parseNoInputDirective(value: String, location: SourceLocation) throws -> [String: Any] {
-        let v = value.trimmingCharacters(in: .whitespaces).lowercased()
-        switch v {
+        // Accept either a single keyword ("ask", "clipboard", "continue",
+        // "cancel") or a two-word form for "ask" with a content type
+        // ("ask files", "ask images", "ask media", "ask url", "ask text",
+        // "ask contact", "ask date", "ask number"). The two-word form
+        // tells Shortcuts.app what picker to present when the user runs
+        // the shortcut with no input.
+        let parts = value.lowercased().split(whereSeparator: { ", :".contains($0) }).map(String.init).filter { !$0.isEmpty }
+        guard let head = parts.first else {
+            throw CompilerError(message: "Empty #noinput directive", location: location)
+        }
+        switch head {
         case "continue":
             return ["Name": "WFWorkflowNoInputBehaviorContinueWithInput", "Parameters": [String: Any]()]
-        case "ask", "askforinput":
-            return ["Name": "WFWorkflowNoInputBehaviorAskForInput", "Parameters": [String: Any]()]
         case "clipboard", "getclipboard":
             return ["Name": "WFWorkflowNoInputBehaviorGetClipboard", "Parameters": [String: Any]()]
         case "cancel":
             return ["Name": "WFWorkflowNoInputBehaviorReturnToHomeScreen", "Parameters": [String: Any]()]
+        case "ask", "askforinput":
+            var parameters: [String: Any] = [:]
+            if parts.count > 1 {
+                let typeMap: [String: (String, String)] = [
+                    // input type token -> (ItemClass, WFPickingMode)
+                    "files": ("WFGenericFileContentItem", "Files"),
+                    "file": ("WFGenericFileContentItem", "Files"),
+                    "images": ("WFImageContentItem", "Photos"),
+                    "image": ("WFImageContentItem", "Photos"),
+                    "photos": ("WFImageContentItem", "Photos"),
+                    "media": ("WFAVAssetContentItem", "Media"),
+                    "video": ("WFAVAssetContentItem", "Media"),
+                    "url": ("WFURLContentItem", "URL"),
+                    "text": ("WFStringContentItem", "Text"),
+                    "string": ("WFStringContentItem", "Text"),
+                    "contact": ("WFContactContentItem", "Contact"),
+                    "date": ("WFDateContentItem", "Date"),
+                    "number": ("WFNumberContentItem", "Number")
+                ]
+                let token = parts[1]
+                guard let (itemClass, pickingMode) = typeMap[token] else {
+                    let valid = typeMap.keys.sorted().joined(separator: ", ")
+                    throw CompilerError(message: "Unknown ask type '\(token)' in #noinput. Valid: \(valid)", location: location)
+                }
+                parameters["ItemClass"] = itemClass
+                parameters["SerializedParameters"] = ["WFPickingMode": pickingMode]
+            }
+            return ["Name": "WFWorkflowNoInputBehaviorAskForInput", "Parameters": parameters]
         default:
-            throw CompilerError(message: "Unknown #noinput value '\(value)'. Valid: continue, ask, clipboard, cancel", location: location)
+            throw CompilerError(message: "Unknown #noinput value '\(value)'. Valid: continue, ask [type], clipboard, cancel", location: location)
         }
     }
 
@@ -566,7 +602,12 @@ struct Compiler: Sendable {
                     let pos = text.count
                     text += "\u{FFFC}"
                     let range = "{\(pos), 1}"
-                    if let ref = outputMap[name] {
+                    if name == "ShortcutInput" {
+                        // The shortcut input magic variable embedded inside
+                        // text uses the bare ExtensionInput token, same as
+                        // when it appears as a standalone field.
+                        attachments[range] = ["Type": "ExtensionInput"]
+                    } else if let ref = outputMap[name] {
                         attachments[range] = [
                             "OutputName": ref.name,
                             "OutputUUID": ref.uuid,
