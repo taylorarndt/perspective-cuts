@@ -63,7 +63,7 @@ struct Compiler: Sendable {
                 if case .dictionaryLiteral = value {
                     sourceAction = try buildDictionaryAction(from: value, outputMap: outputMap)
                 } else {
-                    sourceAction = try buildTextAction(from: value)
+                    sourceAction = try buildTextAction(from: value, outputMap: outputMap)
                 }
                 actions.append(sourceAction)
                 actions.append(buildAction(
@@ -110,7 +110,7 @@ struct Compiler: Sendable {
                             let tkParam = toolKitParams?[label]
                             if tkParam?.isDynamicEntity == true || tkParam?.typeKind == 2 {
                                 // Dynamic entity: wrap as { value, title, subtitle }
-                                let plainVal = try expressionToPlainValue(value)
+                                let plainVal = try expressionToPlainValue(value, outputMap: outputMap)
                                 let strVal = "\(plainVal)"
                                 resolvedValue = [
                                     "value": strVal,
@@ -119,10 +119,10 @@ struct Compiler: Sendable {
                                 ] as [String: Any]
                             } else if tkParam?.typeKind == 3 || tkParam?.typeKind == 4 {
                                 // Static enum: use plain value
-                                resolvedValue = try expressionToPlainValue(value)
+                                resolvedValue = try expressionToPlainValue(value, outputMap: outputMap)
                             } else {
                                 // Primitives (string, int, bool, etc.): use plain values
-                                resolvedValue = try expressionToPlainValue(value)
+                                resolvedValue = try expressionToPlainValue(value, outputMap: outputMap)
                             }
                         } else {
                             // Built-in action — use ActionRegistry parameter definitions
@@ -141,7 +141,7 @@ struct Compiler: Sendable {
                                let intVal = valueMap[s] {
                                 resolvedValue = intVal
                             } else if let paramType = paramDef?.type, (paramType == "enum" || paramType == "boolean" || paramType == "plainString") {
-                                resolvedValue = try expressionToPlainValue(value)
+                                resolvedValue = try expressionToPlainValue(value, outputMap: outputMap)
                             } else {
                                 resolvedValue = try expressionToValueWithOutputMap(value, outputMap: outputMap)
                             }
@@ -201,7 +201,7 @@ struct Compiler: Sendable {
 
             case .repeatLoop(let count, let body, _):
                 let groupID = UUID().uuidString
-                let countValue = try expressionToValue(count)
+                let countValue = try expressionToValueWithOutputMap(count, outputMap: outputMap)
                 actions.append(buildAction(
                     identifier: "is.workflow.actions.repeat.count",
                     parameters: ["GroupingIdentifier": groupID, "WFControlFlowMode": 0, "WFRepeatCount": countValue]
@@ -219,7 +219,7 @@ struct Compiler: Sendable {
 
             case .forEachLoop(_, let collection, let body, _):
                 let groupID = UUID().uuidString
-                let collectionValue = try expressionToValue(collection)
+                let collectionValue = try expressionToValueWithOutputMap(collection, outputMap: outputMap)
                 actions.append(buildAction(
                     identifier: "is.workflow.actions.repeat.each",
                     parameters: ["GroupingIdentifier": groupID, "WFControlFlowMode": 0, "WFInput": collectionValue]
@@ -325,8 +325,8 @@ struct Compiler: Sendable {
         )
     }
 
-    private func buildTextAction(from expression: Expression) throws -> [String: Any] {
-        let value = try expressionToValue(expression)
+    private func buildTextAction(from expression: Expression, outputMap: [String: OutputRef] = [:]) throws -> [String: Any] {
+        let value = try expressionToValueWithOutputMap(expression, outputMap: outputMap)
         let uuid = UUID().uuidString
         return buildAction(
             identifier: "is.workflow.actions.gettext",
@@ -347,18 +347,14 @@ struct Compiler: Sendable {
         ]
     }
 
-    private func expressionToPlainValue(_ expr: Expression) throws -> Any {
+    private func expressionToPlainValue(_ expr: Expression, outputMap: [String: OutputRef] = [:]) throws -> Any {
         switch expr {
         case .stringLiteral(let s): return s
         case .numberLiteral(let n): return n == n.rounded() ? Int(n) : n
         case .boolLiteral(let b): return b
-        case .dictionaryLiteral: return try expressionToValue(expr)
-        default: return try expressionToValue(expr)
+        case .dictionaryLiteral: return try expressionToValueWithOutputMap(expr, outputMap: outputMap)
+        default: return try expressionToValueWithOutputMap(expr, outputMap: outputMap)
         }
-    }
-
-    private func expressionToValue(_ expr: Expression) throws -> Any {
-        return try expressionToValueWithOutputMap(expr, outputMap: [:])
     }
 
     private func expressionToValueWithOutputMap(_ expr: Expression, outputMap: [String: OutputRef]) throws -> Any {
