@@ -13,7 +13,7 @@ let package = Package(
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ],
-            exclude: ["Resources"]
+            resources: [.process("Resources")]
         ),
     ]
 )
