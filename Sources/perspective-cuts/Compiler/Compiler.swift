@@ -172,6 +172,13 @@ struct Compiler: Sendable {
                                 })?.value
                             }
 
+                            // For built-in actions, map friendly name to plist key.
+                            // We need the plist key BEFORE choosing the serialisation
+                            // strategy because some Apple plist keys (e.g.
+                            // WFVariableName) must always be plain strings,
+                            // even when the parameter type is the generic "string".
+                            let plistKey = paramDef?.key ?? label
+
                             if let paramType = paramDef?.type, paramType == "enumInt",
                                let valueMap = paramDef?.valueMap,
                                case .stringLiteral(let s) = value,
@@ -179,17 +186,16 @@ struct Compiler: Sendable {
                                 resolvedValue = intVal
                             } else if let paramType = paramDef?.type, (paramType == "enum" || paramType == "boolean" || paramType == "plainString") {
                                 resolvedValue = try expressionToPlainValue(value)
-                            } else if isAppleBuiltinRaw && Compiler.appleBuiltinPlainKeys.contains(label) {
-                                // Raw Apple identifier with a known scalar key
-                                // (e.g. WFVariableName, Shell, InputMode, Script):
-                                // emit as plain value, not a tokenized text field.
+                            } else if Compiler.appleBuiltinPlainKeys.contains(plistKey) {
+                                // Apple plist keys that must be plain strings
+                                // (variable names, shell choice, script body,
+                                // comment text, etc.), regardless of whether the
+                                // action came from the registry or a raw identifier.
                                 resolvedValue = try expressionToPlainValue(value)
                             } else {
                                 resolvedValue = try expressionToValueWithOutputMap(value, outputMap: outputMap)
                             }
 
-                            // For built-in actions, map friendly name to plist key
-                            let plistKey = paramDef?.key ?? label
                             params[plistKey] = resolvedValue
                             continue
                         }
