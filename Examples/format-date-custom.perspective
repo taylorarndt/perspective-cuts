@@ -1,0 +1,6 @@
+import Shortcuts
+#name: Custom Date Format
+
+getCurrentDate() -> now
+formatDate(date: now, style: "Custom", format: "yyyy-MM-dd'T'HH:mm:ss") -> timestamp
+showResult(text: timestamp)
