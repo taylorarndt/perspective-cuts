@@ -192,6 +192,10 @@ struct Compiler: Sendable {
                                 // comment text, etc.), regardless of whether the
                                 // action came from the registry or a raw identifier.
                                 resolvedValue = try expressionToPlainValue(value, outputMap: outputMap)
+                            } else if paramDef?.type == "string", case .variableReference(let name) = value {
+                                // Text inputs (e.g. text.replace, format.date) evaluate empty when given a
+                                // bare WFTextTokenAttachment; they need the variable embedded in a WFTextTokenString.
+                                resolvedValue = try expressionToValueWithOutputMap(.interpolatedString(parts: [.variable(name)]), outputMap: outputMap)
                             } else {
                                 resolvedValue = try expressionToValueWithOutputMap(value, outputMap: outputMap)
                             }

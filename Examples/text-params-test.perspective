@@ -1,0 +1,11 @@
+// Regression test for replaceText / formatDate returning empty (issue #8).
+// Expected output: replace=[Hello Perspective] date=[<current year>]
+#name: Text Params Test
+#icon: gear
+#color: blue
+
+text(text: "Hello World") -> greeting
+replaceText(input: greeting, find: "World", replace: "Perspective") -> replaced
+getCurrentDate() -> now
+formatDate(date: now, style: "Custom", format: "yyyy") -> year
+is.workflow.actions.output(WFOutput: "replace=[\(replaced)] date=[\(year)]")
