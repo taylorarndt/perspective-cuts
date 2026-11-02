@@ -658,24 +658,15 @@ struct Compiler: Sendable {
         // Helper: resolve the left-hand side of a condition.
         // Conditionals use a nested format for WFInput:
         //   { Type: "Variable", Variable: { Value: { ... }, WFSerializationType: "WFTextTokenAttachment" } }
-        func resolveInput(_ expr: Expression) throws -> Any {
+        func resolveInput(_ expr: Expression, coercionClass: String? = nil) throws -> Any {
             if case .variableReference(let name) = expr {
-                let inner: [String: Any]
-                if let ref = outputMap[name] {
-                    inner = [
-                        "Value": [
-                            "OutputUUID": ref.uuid,
-                            "Type": "ActionOutput",
-                            "OutputName": ref.name
-                        ],
-                        "WFSerializationType": "WFTextTokenAttachment"
-                    ] as [String: Any]
-                } else {
-                    inner = [
-                        "Value": ["VariableName": name, "Type": "Variable"],
-                        "WFSerializationType": "WFTextTokenAttachment"
-                    ] as [String: Any]
+                var value: [String: Any] = outputMap[name].map {
+                    ["OutputUUID": $0.uuid, "Type": "ActionOutput", "OutputName": $0.name]
+                } ?? ["VariableName": name, "Type": "Variable"]
+                if let coercionClass {
+                    value["Aggrandizements"] = [["CoercionItemClass": coercionClass, "Type": "WFCoercionVariableAggrandizement"]]
                 }
+                let inner: [String: Any] = ["Value": value, "WFSerializationType": "WFTextTokenAttachment"]
                 return [
                     "Type": "Variable",
                     "Variable": inner
@@ -697,14 +688,16 @@ struct Compiler: Sendable {
             params["WFInput"] = try resolveInput(left)
             params["WFCondition"] = 99 // contains
             params["WFConditionalActionString"] = try expressionToValueWithOutputMap(right, outputMap: outputMap)
+        // Numeric comparisons read WFNumberValue, not WFConditionalActionString; with the
+        // latter Shortcuts compares against nothing and the branch always runs.
         case .greaterThan(let left, let right):
-            params["WFInput"] = try resolveInput(left)
+            params["WFInput"] = try resolveInput(left, coercionClass: "WFNumberContentItem")
             params["WFCondition"] = 2 // greater than
-            params["WFConditionalActionString"] = try expressionToValueWithOutputMap(right, outputMap: outputMap)
+            params["WFNumberValue"] = "\(try expressionToPlainValue(right, outputMap: outputMap))"
         case .lessThan(let left, let right):
-            params["WFInput"] = try resolveInput(left)
-            params["WFCondition"] = 3 // less than
-            params["WFConditionalActionString"] = try expressionToValueWithOutputMap(right, outputMap: outputMap)
+            params["WFInput"] = try resolveInput(left, coercionClass: "WFNumberContentItem")
+            params["WFCondition"] = 0 // less than (3 is "greater than or equal")
+            params["WFNumberValue"] = "\(try expressionToPlainValue(right, outputMap: outputMap))"
         }
     }
 
