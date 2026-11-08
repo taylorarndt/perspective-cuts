@@ -541,7 +541,7 @@
           "key": "text"
         },
         "separator": {
-          "type": "string",
+          "type": "textSeparator",
           "required": false,
           "key": "WFTextSeparator"
         },
@@ -562,7 +562,7 @@
           "key": "text"
         },
         "separator": {
-          "type": "string",
+          "type": "textSeparator",
           "required": false,
           "key": "WFTextSeparator"
         },

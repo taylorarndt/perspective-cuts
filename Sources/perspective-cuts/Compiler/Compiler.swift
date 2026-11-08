@@ -186,6 +186,25 @@ struct Compiler: Sendable {
                                 resolvedValue = intVal
                             } else if let paramType = paramDef?.type, (paramType == "enum" || paramType == "boolean" || paramType == "plainString") {
                                 resolvedValue = try expressionToPlainValue(value, outputMap: outputMap)
+                            } else if let paramType = paramDef?.type, paramType == "textSeparator",
+                                      case .stringLiteral(let s) = value {
+                                // Shortcuts' splitText/combineText take WFTextSeparator
+                                // as an enum ("New Lines", "Spaces", "Every Character",
+                                // "Custom"). When the enum is "Custom", a sibling
+                                // WFTextCustomSeparator carries the actual character.
+                                // Accept any string from the user and auto-route:
+                                // known enum values pass through; anything else becomes
+                                // a Custom separator. Without this, `separator: ","`
+                                // silently set WFTextSeparator="," and Shortcuts fell
+                                // back to the default (New Lines), producing a single-
+                                // element list instead of three.
+                                let knownEnums: Set<String> = ["New Lines", "Spaces", "Every Character", "Custom"]
+                                if knownEnums.contains(s) {
+                                    resolvedValue = s
+                                } else {
+                                    resolvedValue = "Custom"
+                                    params["WFTextCustomSeparator"] = s
+                                }
                             } else if Compiler.appleBuiltinPlainKeys.contains(plistKey) {
                                 // Apple plist keys that must be plain strings
                                 // (variable names, shell choice, script body,
