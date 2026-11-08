@@ -1,0 +1,17 @@
+// Regression test for literal separators and the existing customSeparator alias.
+// Expected: literal=[a|b|c] legacy=[a|b|c] chars=[a b c] lines=[a|b|c]
+#name: Text Separator Test
+#icon: gear
+#color: blue
+
+splitText(text: "a,b,c", separator: ",") -> csv
+combineText(text: csv, separator: "|") -> literal
+text(text: ",") -> comma
+text(text: "|") -> pipe
+splitText(text: "a,b,c", separator: "Custom", customSeparator: comma) -> oldStyle
+combineText(text: oldStyle, separator: "Custom", customSeparator: pipe) -> legacy
+splitText(text: "abc", separator: "Every Character") -> characters
+combineText(text: characters, separator: "Spaces") -> spaced
+splitText(text: "a\nb\nc", separator: "New Lines") -> lines
+combineText(text: lines, separator: "|") -> joinedLines
+is.workflow.actions.output(WFOutput: "literal=[\(literal)] legacy=[\(legacy)] chars=[\(spaced)] lines=[\(joinedLines)]")

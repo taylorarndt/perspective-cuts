@@ -544,6 +544,11 @@
           "type": "textSeparator",
           "required": false,
           "key": "WFTextSeparator"
+        },
+        "customSeparator": {
+          "type": "string",
+          "required": false,
+          "key": "WFTextCustomSeparator"
         }
       }
     },
@@ -560,6 +565,11 @@
           "type": "textSeparator",
           "required": false,
           "key": "WFTextSeparator"
+        },
+        "customSeparator": {
+          "type": "string",
+          "required": false,
+          "key": "WFTextCustomSeparator"
         }
       }
     },
