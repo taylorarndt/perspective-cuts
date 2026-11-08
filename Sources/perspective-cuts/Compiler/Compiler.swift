@@ -675,6 +675,21 @@ struct Compiler: Sendable {
             return try expressionToValueWithOutputMap(expr, outputMap: outputMap)
         }
 
+        // Number fields store literal numbers as text. Dynamic operands require
+        // token strings: a bare token attachment is not resolved in WFNumberValue.
+        func resolveNumberValue(_ expr: Expression) throws -> Any {
+            if case .variableReference(let name) = expr {
+                return try expressionToValueWithOutputMap(
+                    .interpolatedString(parts: [.variable(name)]), outputMap: outputMap
+                )
+            }
+            let value = try expressionToPlainValue(expr, outputMap: outputMap)
+            if case .numberLiteral = expr {
+                return "\(value)"
+            }
+            return value
+        }
+
         switch condition {
         case .equals(let left, let right):
             params["WFInput"] = try resolveInput(left)
@@ -693,11 +708,11 @@ struct Compiler: Sendable {
         case .greaterThan(let left, let right):
             params["WFInput"] = try resolveInput(left, coercionClass: "WFNumberContentItem")
             params["WFCondition"] = 2 // greater than
-            params["WFNumberValue"] = "\(try expressionToPlainValue(right, outputMap: outputMap))"
+            params["WFNumberValue"] = try resolveNumberValue(right)
         case .lessThan(let left, let right):
             params["WFInput"] = try resolveInput(left, coercionClass: "WFNumberContentItem")
             params["WFCondition"] = 0 // less than (3 is "greater than or equal")
-            params["WFNumberValue"] = "\(try expressionToPlainValue(right, outputMap: outputMap))"
+            params["WFNumberValue"] = try resolveNumberValue(right)
         }
     }
 

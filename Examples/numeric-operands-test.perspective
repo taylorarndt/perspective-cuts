@@ -1,0 +1,95 @@
+// On-device numeric comparison regression check.
+// Expected: all 12 results are PASS. The compiler tests only verify serialization.
+#name: Numeric Operands Test
+#icon: gear
+#color: blue
+
+number(value: 10) -> ten
+number(value: 5) -> low
+number(value: 50) -> high
+
+var literalgtTrue = "FAIL"
+if ten > 5 {
+    var literalgtTrue = "PASS"
+} else {
+    var literalgtTrue = "FAIL"
+}
+
+var literalgtFalse = "FAIL"
+if ten > 50 {
+    var literalgtFalse = "FAIL"
+} else {
+    var literalgtFalse = "PASS"
+}
+
+var literalltTrue = "FAIL"
+if ten < 50 {
+    var literalltTrue = "PASS"
+} else {
+    var literalltTrue = "FAIL"
+}
+
+var literalltFalse = "FAIL"
+if ten < 5 {
+    var literalltFalse = "FAIL"
+} else {
+    var literalltFalse = "PASS"
+}
+
+var variablegtTrue = "FAIL"
+if ten > low {
+    var variablegtTrue = "PASS"
+} else {
+    var variablegtTrue = "FAIL"
+}
+
+var variablegtFalse = "FAIL"
+if ten > high {
+    var variablegtFalse = "FAIL"
+} else {
+    var variablegtFalse = "PASS"
+}
+
+var variableltTrue = "FAIL"
+if ten < high {
+    var variableltTrue = "PASS"
+} else {
+    var variableltTrue = "FAIL"
+}
+
+var variableltFalse = "FAIL"
+if ten < low {
+    var variableltFalse = "FAIL"
+} else {
+    var variableltFalse = "PASS"
+}
+
+var interpolatedgtTrue = "FAIL"
+if ten > "\(low)" {
+    var interpolatedgtTrue = "PASS"
+} else {
+    var interpolatedgtTrue = "FAIL"
+}
+
+var interpolatedgtFalse = "FAIL"
+if ten > "\(high)" {
+    var interpolatedgtFalse = "FAIL"
+} else {
+    var interpolatedgtFalse = "PASS"
+}
+
+var interpolatedltTrue = "FAIL"
+if ten < "\(high)" {
+    var interpolatedltTrue = "PASS"
+} else {
+    var interpolatedltTrue = "FAIL"
+}
+
+var interpolatedltFalse = "FAIL"
+if ten < "\(low)" {
+    var interpolatedltFalse = "FAIL"
+} else {
+    var interpolatedltFalse = "PASS"
+}
+
+is.workflow.actions.output(WFOutput: "literalgtTrue=[\(literalgtTrue)] literalgtFalse=[\(literalgtFalse)] literalltTrue=[\(literalltTrue)] literalltFalse=[\(literalltFalse)] variablegtTrue=[\(variablegtTrue)] variablegtFalse=[\(variablegtFalse)] variableltTrue=[\(variableltTrue)] variableltFalse=[\(variableltFalse)] interpolatedgtTrue=[\(interpolatedgtTrue)] interpolatedgtFalse=[\(interpolatedgtFalse)] interpolatedltTrue=[\(interpolatedltTrue)] interpolatedltFalse=[\(interpolatedltFalse)]")
