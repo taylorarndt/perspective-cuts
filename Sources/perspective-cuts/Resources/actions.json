@@ -743,6 +743,11 @@
           "required": false,
           "key": "WFDateFormatStyle"
         },
+        "timeStyle": {
+          "type": "plainString",
+          "required": false,
+          "key": "WFTimeFormatStyle"
+        },
         "format": {
           "type": "string",
           "required": false,

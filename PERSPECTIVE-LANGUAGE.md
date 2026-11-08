@@ -233,7 +233,7 @@ perspective-cuts validate file.perspective
 
 ### Date and Time
 - `getCurrentDate()` — Current date/time
-- `formatDate(date, (style), (format))` — Format date
+- `formatDate(date, (style), (timeStyle), (format))` — Format date
 - `adjustDate(date, duration, (unit))` — Add/subtract time
 - `timeBetweenDates(input, (unit))` — Time between dates
 - `getDates(input)` — Extract dates from text
@@ -465,8 +465,8 @@ import Shortcuts
 
 downloadURL(url: "https://api.github.com/zen") -> wisdom
 getCurrentDate() -> now
-formatDate(date: now, style: "Medium") -> date
-text(text: "\(date)\n\n\(wisdom)") -> result
+formatDate(date: now, style: "Custom", format: "yyyy-MM-dd'T'HH:mm:ss") -> timestamp
+text(text: "\(timestamp)\n\n\(wisdom)") -> result
 setClipboard(input: result)
 notification(body: "Wisdom copied to clipboard", title: "Daily Wisdom", sound: true)
 ```

@@ -209,6 +209,7 @@ struct Compiler: Sendable {
                     }
                 }
 
+                applyFormatDateDefaults(identifier: identifier, parameters: &params)
                 actions.append(buildAction(identifier: identifier, parameters: params))
 
                 // Track output for ActionOutput references
@@ -363,8 +364,24 @@ struct Compiler: Sendable {
         "InputMode",
         "Script",
         "WFTextActionText",
-        "WFNotificationActionTitle"
+        "WFNotificationActionTitle",
+        "WFDateFormatStyle",
+        "WFTimeFormatStyle",
+        "WFRelativeDateFormatStyle"
     ]
+
+    private func applyFormatDateDefaults(identifier: String, parameters: inout [String: Any]) {
+        guard identifier == "is.workflow.actions.format.date" else { return }
+
+        if parameters["WFDateFormat"] != nil && parameters["WFDateFormatStyle"] == nil {
+            parameters["WFDateFormatStyle"] = "Custom"
+        }
+
+        if (parameters["WFDateFormatStyle"] != nil || parameters["WFDateFormat"] != nil) &&
+            parameters["WFTimeFormatStyle"] == nil {
+            parameters["WFTimeFormatStyle"] = "None"
+        }
+    }
 
     private static let defaultInputContentClasses: [String] = [
         "WFAppStoreAppContentItem",
