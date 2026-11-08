@@ -15,5 +15,9 @@ let package = Package(
             ],
             resources: [.process("Resources")]
         ),
+        .testTarget(
+            name: "PerspectiveCutsTests",
+            dependencies: ["perspective-cuts"]
+        ),
     ]
 )

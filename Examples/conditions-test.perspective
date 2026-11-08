@@ -1,0 +1,29 @@
+// On-device check for if-conditions.
+// Expected output: gt=[yes] lt=[yes] gtFalse=[no] ltFalse=[no] eq=[yes]
+#name: Conditions Test
+#icon: gear
+#color: blue
+
+number(value: 10) -> ten
+text(text: "abc") -> word
+var gt = "no"
+var lt = "no"
+var gtFalse = "no"
+var ltFalse = "no"
+var eq = "no"
+if ten > 5 {
+    var gt = "yes"
+}
+if ten < 50 {
+    var lt = "yes"
+}
+if ten > 50 {
+    var gtFalse = "yes"
+}
+if ten < 5 {
+    var ltFalse = "yes"
+}
+if word == "abc" {
+    var eq = "yes"
+}
+is.workflow.actions.output(WFOutput: "gt=[\(gt)] lt=[\(lt)] gtFalse=[\(gtFalse)] ltFalse=[\(ltFalse)] eq=[\(eq)]")
